@@ -1,9 +1,9 @@
 /**
-* SBI証券にログインし口座（円建）の情報を CSV 形式で返却する
-* @param {string} id SBI証券のID
-* @param {string} password SBI証券のパスワード
-* @returns {string} CSV形式の口座情報
-*/
+ * SBI証券にログインし口座（円建）の情報を CSV 形式で返却する
+ * @param {string} id SBI証券のID
+ * @param {string} password SBI証券のパスワード
+ * @returns {string} CSV形式の口座情報
+ */
 export default async function getSbiAccountJPY(id, password) {
     const sbiUrl = "https://site3.sbisec.co.jp/ETGate/";
 
@@ -103,9 +103,10 @@ export default async function getSbiAccountJPY(id, password) {
     )
 
     // csv 形式で返す
-    const csv = accountInfo.map((info) => {
+    let csv = accountInfo.map((info) => {
         return `${info.margin},${info.code},${info.name},${info.share},${info.buyingPrice},${info.nowPrice}`;
     }).join("\n");
+    csv = `現/信,コード,銘柄名,株数,買値,現在値\n${csv}`;
 
     return csv;
 }

@@ -63,9 +63,10 @@ export default async function getSbiAccountUSD(id, password) {
     }
 
     // csv 形式で返す
-    const csv = accountInfo.map((info) => {
+    let csv = accountInfo.map((info) => {
         return `${info.margin},${info.code},${info.name},${info.share},${info.buyingPrice},${info.nowPrice},${info.buyingPriceJPY},${info.nowPriceJPY}`;
     }).join("\n");
+    csv = `現/信,コード,銘柄名,株数,買値,現在値,買値（円）,現在値（円）\n${csv}`;
 
     return csv;
 }
