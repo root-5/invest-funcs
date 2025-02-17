@@ -91,7 +91,7 @@ export default async function getSbiAccountJPY(id, password) {
     const buyingPowerRegex = /<td width="150" class="mtext" align="right"><div class="margin">(.{1,10})&nbsp;/;
     const buyingPowerMatch = portfolioHtml.match(buyingPowerRegex)[1];
     const buyingPower = buyingPowerMatch.replace(/,/g, "");
-    accountInfo.push(
+    accountInfo.unshift(
         {
             margin: "-",
             code: "-",

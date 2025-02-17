@@ -17,6 +17,8 @@ Cloudflare Wokers の所感としては、導入～デプロイまでがマネ�
 
 # アイディア
 - 簡易的な認証として永続トークンを使っているが、脆弱の極みなので一時トークンに変更する
+- Wokers KV を使って ssoToken などの一時データを保存し、id, pass の送信回数を減らす
+  - https://developers.cloudflare.com/kv/get-started/
 - 外貨口座はあまり使っていないため、レスポンスの解析が不十分
 - Hono を使って再構築
 - CI/CD を導入（現時点でも `npm run deploy` だけなので優先度は低い）
