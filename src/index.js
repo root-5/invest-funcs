@@ -1,31 +1,36 @@
-import getSbiAccountJPY from "./funcs/getSbiAccountJPY";
-import getSbiAccountUSD from "./funcs/getSbiAccountUSD";
+import getSbiAccountJPY from './funcs/getSbiAccountJPY';
+import getSbiAccountUSD from './funcs/getSbiAccountUSD';
+import getSbiTradingLogJPY from './funcs/getSbiTradingLogJPY';
 
 export default {
 	async fetch(request, env, ctx) {
 		// リクエストパスを取得
 		const url = new URL(request.url);
 		const path = url.pathname;
-		console.log("PATH: " + path);
+		console.log('PATH: ' + path);
 
 		// クエリからトークンを取得
-		const token = url.searchParams.get("token");
+		const token = url.searchParams.get('token');
 
 		// トークンが正しいか確認
 		if (token !== env.API_TOKEN) {
-			return new Response("Unauthorized", { status: 401 });
+			return new Response('Unauthorized', { status: 401 });
 		}
 
 		switch (path) {
-			case "/sbiAccountJPY":
+			case '/sbiAccountJPY':
 				const sbiAccountJPY = await getSbiAccountJPY(env.SBI_ID, env.SBI_PASSWORD);
 				return new Response(sbiAccountJPY);
-			case "/sbiAccountUSD":
+			case '/sbiAccountUSD':
 				const sbiAccountUSD = await getSbiAccountUSD(env.SBI_ID, env.SBI_PASSWORD);
 				return new Response(sbiAccountUSD);
+			case '/getSbiTradingLogJPY':
+				const sbiTradingLogJPY = await getSbiTradingLogJPY(env.SBI_ID, env.SBI_PASSWORD);
+				return new Response(sbiTradingLogJPY);
 			default:
 				// return new Response("Not Found", { status: 404 });
-				return new Response(`
+				return new Response(
+					`
 					<!DOCTYPE html>
 					<html lang="ja">
 					<head>
@@ -37,10 +42,13 @@ export default {
 						<ul>
 							<li><a href="/sbiAccountJPY?token=${env.API_TOKEN}">/sbiAccountJPY</a>: SBI証券の円建口座情報を取得</li>
 							<li><a href="/sbiAccountUSD?token=${env.API_TOKEN}">/sbiAccountUSD</a>: SBI証券の外貨建口座情報を取得</li>
+							<li><a href="/getSbiTradingLogJPY?token=${env.API_TOKEN}">/getSbiTradingLogJPY</a>: SBI証券の円建取引履歴を取得</li>
 						</ul>
 					</body>
 					</html>
-					`, { headers: { "Content-Type": "text/html" } });
+					`,
+					{ headers: { 'Content-Type': 'text/html' } }
+				);
 		}
 	},
 };
