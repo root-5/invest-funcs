@@ -15,7 +15,7 @@ export default async function getSbiTradingLogJPY(env, retryCount = 0) {
 		return `${year}${month}${day}`;
 	};
 	const today = new Date();
-	const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+	const weekAgo = new Date(today.getTime() - 31 * 24 * 60 * 60 * 1000);
 	const todayStr = formatDate(today);
 	const weekAgoStr = formatDate(weekAgo);
 
@@ -46,7 +46,11 @@ export default async function getSbiTradingLogJPY(env, retryCount = 0) {
 		const buffer = await res.arrayBuffer();
 		const uint8Array = new Uint8Array(buffer);
 		const csv = new TextDecoder('shift-jis').decode(uint8Array);
-		return csv;
+
+		// 最初の 8 行を削除
+		const lines = csv.split('\n');
+		lines.splice(0, 8);
+		return lines.join('\n');
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_COUNT) {
