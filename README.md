@@ -9,7 +9,13 @@ Cloudflare Wokers の所感としては、導入～デプロイまでがマネ�
 # コマンド
 ## リポジトリ作成時に実行
 1. `npm create cloudflare@latest -- invest-funcs`
-2. `npm run deploy`
+2. Workers KV の設定（詳細は https://developers.cloudflare.com/kv/get-started/、以下は簡易メモ）
+   1. `npx wrangler kv namespace create KV_BINDING` で namespace を作成（"-" が "_" で作成されるので注意）
+   2. `npx wrangler kv namespace list | jq "."` 作成状況を確認
+   3. 2.のコマンドされた kv_namespace を `wrangler.jsonc` に追加
+   4. `npx wrangler kv key put --binding=KV_BINDING "test" "testtest"` コマンドでのテスト書き込み
+   5. `npx wrangler kv key get --binding=KV_BINDING "test"` コマンドでのテスト読み込み
+3. `npm run deploy`
 
 ## 開発中使用
 - デプロイ: `npm run deploy`
@@ -22,3 +28,6 @@ Cloudflare Wokers の所感としては、導入～デプロイまでがマネ�
 - 外貨口座はあまり使っていないため、レスポンスの解析が不十分
 - Hono を使って再構築
 - CI/CD を導入（現時点でも `npm run deploy` だけなので優先度は低い）
+
+npx wrangler kv key put --binding=invest-funcs-kv-binding "test" "testtest"
+wrangler kv namespace delete --binding=invest-funcs-invest-funcs-kv-binding

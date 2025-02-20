@@ -19,13 +19,13 @@ export default {
 
 		switch (path) {
 			case '/sbiAccountJPY':
-				const sbiAccountJPY = await getSbiAccountJPY(env.SBI_ID, env.SBI_PASSWORD);
+				const sbiAccountJPY = await getSbiAccountJPY(env);
 				return new Response(sbiAccountJPY);
 			case '/sbiAccountUSD':
-				const sbiAccountUSD = await getSbiAccountUSD(env.SBI_ID, env.SBI_PASSWORD);
+				const sbiAccountUSD = await getSbiAccountUSD(env);
 				return new Response(sbiAccountUSD);
 			case '/getSbiTradingLogJPY':
-				const sbiTradingLogJPY = await getSbiTradingLogJPY(env.SBI_ID, env.SBI_PASSWORD);
+				const sbiTradingLogJPY = await getSbiTradingLogJPY(env);
 				return new Response(sbiTradingLogJPY);
 			default:
 				// return new Response("Not Found", { status: 404 });
