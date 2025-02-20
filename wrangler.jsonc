@@ -13,7 +13,7 @@
 	"kv_namespaces": [
 		{
 			"binding": "KV_BINDING",
-			"id": "8bfd28368dec458c9368a16d255e7786"
+			"id": "${CLOUDFLARE_KV_ID}"
 		}
 	],
 	"vars": {

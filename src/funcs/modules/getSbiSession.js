@@ -15,7 +15,7 @@ export default async function getSbiSession(env, options = {}) {
 	}
 
 	// ログイン用パラメータを指定
-    // _ReturnPageInfo は ssoToken 取得のため、口座管理-口座（外貨建）-保有証券の画面を指定している
+	// _ReturnPageInfo は ssoToken 取得のため、口座管理-口座（外貨建）-保有証券の画面を指定している
 	const loginFormData = {
 		_PageID: 'WPLETlgR001Rlgn20',
 		_ControlID: 'WPLETlgR001Control',
