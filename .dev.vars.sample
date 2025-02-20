@@ -1,6 +1,0 @@
-# Cloudflare Wokers のローカル環境用環境変数 .dev.vars のサンプル
-# 本番環境は Cloudflare のコンソールから設定する
-API_TOKEN=
-SBI_ID=
-SBI_PASSWORD=
-CLOUDFLARE_KV_ID=

@@ -12,13 +12,16 @@
 	},
 	"kv_namespaces": [
 		{
-			"binding": "KV_BINDING",
-			"id": "${CLOUDFLARE_KV_ID}"
+			"binding": "XXXXXXXXXX",
+			"id": "XXXXXXXXXX"
 		}
 	],
 	"vars": {
 		"RETRY_ATTEMPTS": "1",
-		"RETRY_DELAY": "2000"
+		"RETRY_DELAY": "2000",
+		"API_TOKEN": "XXXXXXXXXX",
+		"SBI_ID": "XXXXXXXXXX",
+		"SBI_PASSWORD": "XXXXXXXXXX"
 	}
 	/**
 	 * Smart Placement
