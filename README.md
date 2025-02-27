@@ -20,6 +20,10 @@ Cloudflare Wokers の所感としては、導入～デプロイまでがマネ�
 ## 開発中使用
 - デプロイ: `npm run deploy`
 - ローカル起動: `npm run dev`
+- ローカルビルド: `npx wrangler deploy --dry-run --outdir=./dist`
+
+# Cloudflare Workers 使い方メモ
+デプロイした関数の「デプロイ」タブの右上にある「</>」のマークをクリックすると、直接 WEB 上のエディタで編集できる。
 
 # ドキュメント
 - [公式の AI サポート](https://developers.cloudflare.com/workers/ai/)

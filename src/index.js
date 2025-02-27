@@ -8,7 +8,6 @@ export default {
 		// リクエストパスを取得
 		const url = new URL(request.url);
 		const path = url.pathname;
-		console.log('PATH: ' + path);
 
 		// クエリからトークンを取得
 		const token = url.searchParams.get('token');

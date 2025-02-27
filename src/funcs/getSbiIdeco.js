@@ -26,8 +26,8 @@ export default async function getSbiIdeco(env, retryCount = 0) {
 			__VIEWSTATEGENERATOR: hiddenInputObj.__VIEWSTATEGENERATOR,
 			__EVENTVALIDATION: hiddenInputObj.__EVENTVALIDATION,
 			txtFocusItem: 'txtUserID',
-			txtUserID: '111111111111',
-			txtPassword: '111111111111',
+			txtUserID: env.IDECO_ID,
+			txtPassword: env.IDECO_PASSWORD,
 			redirect: 'manual',
 		};
 
@@ -73,7 +73,7 @@ export default async function getSbiIdeco(env, retryCount = 0) {
 		const stockTableElem = portfolioHtml.match(stockTableRegex);
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
-		// if (retryCount < env.RETRY_COUNT) {
+		// if (retryCount < env.RETRY_MAX) {
 		// 	await new Promise((resolve) => setTimeout(resolve, env.RETRY_INTERVAL)); // 待機
 		// 	await getSbiSession(env, { forceUpdate: true }); // ログイン情報を更新
 		// 	return getSbiAccountJPY(env, retryCount + 1);

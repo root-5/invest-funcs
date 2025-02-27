@@ -53,10 +53,10 @@ export default async function getSbiTradingLogJPY(env, retryCount = 0) {
 		return lines.join('\n');
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
-		if (retryCount < env.RETRY_COUNT) {
+		if (retryCount < env.RETRY_MAX) {
 			await new Promise((resolve) => setTimeout(resolve, env.RETRY_INTERVAL)); // 待機
 			await getSbiSession(env, { forceUpdate: true }); // ログイン情報を更新
-			return getSbiAccountJPY(env, retryCount + 1);
+			return getSbiTradingLogJPY(env, retryCount + 1);
 		}
 		console.log(e);
 		return 'error';

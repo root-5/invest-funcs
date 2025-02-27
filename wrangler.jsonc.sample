@@ -21,8 +21,11 @@
 		"RETRY_DELAY": "2000",
 		"API_TOKEN": "XXXXXXXXXX",
 		"SBI_ID": "XXXXXXXXXX",
-		"SBI_PASSWORD": "XXXXXXXXXX"
+		"SBI_PASSWORD": "XXXXXXXXXX",
+		"IDECO_ID": "XXXXXXXXXX",
+		"IDECO_PASSWORD": "XXXXXXXXXX"
 	}
+
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
