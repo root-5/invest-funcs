@@ -55,6 +55,7 @@ export default async function getSbiAccountUSD(env, retryCount = 0) {
 			await getSbiSession(env, { forceUpdate: true }); // ログイン情報を更新
 			return getSbiAccountUSD(env, retryCount + 1);
 		}
+		console.log(e);
 		return 'error';
 	}
 }

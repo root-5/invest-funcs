@@ -6,7 +6,7 @@
  */
 export default async function getSbiSession(env, options = {}) {
 	// 引数の options に forceUpdate が指定されていない場合は、KV からログイン情報を取得して返却
-	if (!options.forceUpdate) {
+	if (options.forceUpdate !== true) {
 		const loginCookieText = await env.KV_BINDING.get('loginCookieText');
 		const ssoTokenText = await env.KV_BINDING.get('ssoTokenText');
 		if (loginCookieText && ssoTokenText) {
