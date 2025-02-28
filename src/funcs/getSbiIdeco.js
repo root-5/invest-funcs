@@ -1,5 +1,8 @@
 export default async function getSbiIdeco(env, retryCount = 0) {
 	try {
+		// ================================================================================
+		// ================================================================================
+		// ログインページの HTML ソースを取得
 		const loginPageRes = await fetch('https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_BFKLogin.aspx');
 		const loginPageBuffer = await loginPageRes.arrayBuffer();
 		const loginPageUint8Array = new Uint8Array(loginPageBuffer);
@@ -16,11 +19,11 @@ export default async function getSbiIdeco(env, retryCount = 0) {
 			hiddenInputObj[name] = value;
 		}
 
-		// cookie を取得
-		const loginCookie = loginPageRes.headers.get('set-cookie');
+		// cookie を取得し、そのうちの AWSALB, AWSALBCORS, SVRID を取得
+		const loginCookie1 = loginPageRes.headers.get('set-cookie');
 
 		const formData = {
-			__EVENTTARGET: 'btnHome',
+			__EVENTTARGET: 'btnLogin',
 			__EVENTARGUMENT: '',
 			__VIEWSTATE: hiddenInputObj.__VIEWSTATE,
 			__VIEWSTATEGENERATOR: hiddenInputObj.__VIEWSTATEGENERATOR,
@@ -28,41 +31,101 @@ export default async function getSbiIdeco(env, retryCount = 0) {
 			txtFocusItem: 'txtUserID',
 			txtUserID: env.IDECO_ID,
 			txtPassword: env.IDECO_PASSWORD,
-			redirect: 'manual',
 		};
+		const body = new URLSearchParams(formData);
+		const bodyText = body.toString();
 
+		// ================================================================================
+		// ================================================================================
+		// フォーム送信（リダイレクト１）
 		// HTML ソースを取得
-		const loginRes = await fetch('https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_BFKLogin.aspx', {
-			method: 'POST',
+		const loginResRedirect1 = await fetch('https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_BFKLogin.aspx', {
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-				'User-Agent': 'Chrome/133.0.0.0',
-				Cookie: loginCookie,
+				'content-type': 'application/x-www-form-urlencoded',
+				cookie: loginCookie1,
+				Referer: 'https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_BFKLogin.aspx',
 			},
-			body: new URLSearchParams(formData),
+			body: bodyText,
+			method: 'POST',
+			redirect: 'manual',
 		});
-		const buffer = await loginRes.arrayBuffer();
-		const uint8Array = new Uint8Array(buffer);
-		const portfolioHtml = new TextDecoder('shift-jis').decode(uint8Array);
 
-		// Cookie を取得
-		const loginCookie2 = loginRes.headers.get('set-cookie');
+		// cookie を取得し、そのうちの AWSALB, AWSALBCORS, SVRID, ASP.NET_SessionId を取得
+		const loginCookie2 = loginResRedirect1.headers.get('set-cookie');
+		const loginCookie2AWSALB = loginCookie2.match(/AWSALB=(.*);/)[1];
+		const loginCookie2AWSALBCORS = loginCookie2.match(/AWSALBCORS=(.*);/)[1];
+		const loginCookie2SVRID = loginCookie2.match(/SVRID=(.*);/)[1];
+		const loginCookie2ASPNETSessionId = loginCookie2.match(/ASP.NET_SessionId=(.*);/)[1];
 
-		console.log(loginCookie);
-		console.log('\n\n');
+		console.log('\n---------------------------\n');
+		console.log('\n---------------------------\n');
+		console.log('\n---------------------------\n');
+		console.log('loginCookie2');
+		console.log('\n---------------------------\n');
 		console.log(loginCookie2);
 
-		// return portfolioHtml;
+		// const buffer1 = await loginResRedirect1.arrayBuffer();
+		// const uint8Array1 = new Uint8Array(buffer1);
+		// const portfolioHtml1 = new TextDecoder('shift-jis').decode(uint8Array1);
+		// return portfolioHtml1;
 
-		const resultRes = await fetch('https://www.benefit401k.com/customer/RkDCMember/Home/JP_D_MemHome.aspx', {
+		// ================================================================================
+		// ================================================================================
+		// フォーム送信（リダイレクト２）
+		const loginResRedirect2 = await fetch('https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_EmailAddress_Registration.aspx', {
 			headers: {
-				cookie: loginCookie + '; ' + loginCookie2,
-				Referer: 'https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_Password_ChangePassword_Warning.aspx',
+				accept:
+					'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+				'accept-language': 'ja',
+				'cache-control': 'no-cache',
+				pragma: 'no-cache',
+				priority: 'u=0, i',
+				'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+				'sec-ch-ua-mobile': '?0',
+				'sec-ch-ua-platform': '"Windows"',
+				'sec-fetch-dest': 'document',
+				'sec-fetch-mode': 'navigate',
+				'sec-fetch-site': 'same-origin',
+				'sec-fetch-user': '?1',
+				'upgrade-insecure-requests': '1',
+				// cookie: `SVRID=${loginCookie2SVRID}; AWSALB=${loginCookie2AWSALB}; AWSALBCORS=${loginCookie2AWSALBCORS}; ASP.NET_SessionId=${loginCookie2ASPNETSessionId}`,
+				cookie: loginCookie2,
+				Referer: 'https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_BFKLogin.aspx',
+				'Referrer-Policy': 'strict-origin-when-cross-origin',
 			},
 			body: null,
 			method: 'GET',
+			redirect: 'manual',
 		});
-		const resultBuffer = await resultRes.arrayBuffer();
+		const loginCookie3 = loginResRedirect2.headers.get('set-cookie');
+
+		console.log('\n---------------------------\n');
+		console.log('\n---------------------------\n');
+		console.log('\n---------------------------\n');
+		console.log('loginCookie3');
+		console.log('\n---------------------------\n');
+		console.log(loginCookie3);
+
+		const buffer2 = await loginResRedirect2.arrayBuffer();
+		const uint8Array2 = new Uint8Array(buffer2);
+		const portfolioHtml2 = new TextDecoder('shift-jis').decode(uint8Array2);
+		return portfolioHtml2;
+
+		// ================================================================================
+		// ================================================================================
+		// フォーム送信（リダイレクト３）
+		const loginResRedirect3 = await fetch('https://www.benefit401k.com/customer/RkDCMember/Home/JP_D_MemHome.aspx', {
+			headers: {
+				cookie: loginCookie3,
+				// cookie: loginCookie1 + '; ' + loginCookie2 + '; ' + loginCookie3,
+				referer: 'https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_EmailAddress_Registration.aspx',
+				'User-Agent': 'Chrome/133:0:0:0',
+			},
+			body: null,
+			method: 'GET',
+			redirect: 'manual',
+		});
+		const resultBuffer = await loginResRedirect3.arrayBuffer();
 		const resultUint8Array = new Uint8Array(resultBuffer);
 		const resultHtml = new TextDecoder('shift-jis').decode(resultUint8Array);
 		return resultHtml;
