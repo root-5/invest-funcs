@@ -19,8 +19,16 @@ export default async function getSbiIdeco(env, retryCount = 0) {
 			hiddenInputObj[name] = value;
 		}
 
-		// cookie を取得し、そのうちの AWSALB, AWSALBCORS, SVRID を取得
+		// cookie を取得しオブジェクトに変換
 		const loginCookie1 = loginPageRes.headers.get('set-cookie');
+		const loginCookie1Obj = {};
+		// 「;」または半角スペースで分割し、さらにその中から「スペース以外の文字=スペース以外の文字」となっている文字列を取り出し、オブジェクトの key, value にする
+		loginCookie1.split(/; | /).forEach((cookie) => {
+			const regex = /([^=]+)=([^=]+)/;
+			const cookieArr = cookie.match(regex);
+			if (!cookieArr) return;
+			loginCookie1Obj[cookieArr[1]] = cookieArr[2];
+		});
 
 		const formData = {
 			__EVENTTARGET: 'btnLogin',
@@ -50,45 +58,46 @@ export default async function getSbiIdeco(env, retryCount = 0) {
 			redirect: 'manual',
 		});
 
-		// cookie を取得し、そのうちの AWSALB, AWSALBCORS, SVRID, ASP.NET_SessionId を取得
-		const loginCookie2 = loginResRedirect1.headers.get('set-cookie');
-		const loginCookie2AWSALB = loginCookie2.match(/AWSALB=(.*);/)[1];
-		const loginCookie2AWSALBCORS = loginCookie2.match(/AWSALBCORS=(.*);/)[1];
-		const loginCookie2SVRID = loginCookie2.match(/SVRID=(.*);/)[1];
-		const loginCookie2ASPNETSessionId = loginCookie2.match(/ASP.NET_SessionId=(.*);/)[1];
+		// cookie を取得しオブジェクトに変換
+		let loginCookie2 = loginResRedirect1.headers.get('set-cookie');
+		const loginCookie2Obj = {};
+		loginCookie2.split(/; | /).forEach((cookie) => {
+			const regex = /([^=]+)=([^=]+)/;
+			const cookieArr = cookie.match(regex);
+			if (!cookieArr) return;
+			loginCookie2Obj[cookieArr[1]] = cookieArr[2];
+		});
 
 		console.log('\n---------------------------\n');
+		console.log('loginCookie1Obj');
 		console.log('\n---------------------------\n');
+		console.log(loginCookie1);
+		console.log(loginCookie1Obj);
 		console.log('\n---------------------------\n');
-		console.log('loginCookie2');
+		console.log('loginCookie2Obj');
 		console.log('\n---------------------------\n');
 		console.log(loginCookie2);
+		console.log(loginCookie2Obj);
 
-		// const buffer1 = await loginResRedirect1.arrayBuffer();
-		// const uint8Array1 = new Uint8Array(buffer1);
-		// const portfolioHtml1 = new TextDecoder('shift-jis').decode(uint8Array1);
-		// return portfolioHtml1;
+		// loginCookie1 と loginCookie2 を結合し、同じキーがあれば loginCookie2 の値で上書き
+		Object.assign(loginCookie1Obj, loginCookie2Obj);
+		loginCookie2 = Object.entries(loginCookie1Obj)
+			.map(([key, value]) => {
+				return `${key}=${value}`;
+			})
+			.join('; ');
+
+		console.log('\n---------------------------\n');
+		console.log('\n---------------------------\n');
+		console.log('loginCookie2 NEW');
+		console.log('\n---------------------------\n');
+		console.log(loginCookie2);
 
 		// ================================================================================
 		// ================================================================================
 		// フォーム送信（リダイレクト２）
 		const loginResRedirect2 = await fetch('https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_EmailAddress_Registration.aspx', {
 			headers: {
-				accept:
-					'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-				'accept-language': 'ja',
-				'cache-control': 'no-cache',
-				pragma: 'no-cache',
-				priority: 'u=0, i',
-				'sec-ch-ua': '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
-				'sec-ch-ua-mobile': '?0',
-				'sec-ch-ua-platform': '"Windows"',
-				'sec-fetch-dest': 'document',
-				'sec-fetch-mode': 'navigate',
-				'sec-fetch-site': 'same-origin',
-				'sec-fetch-user': '?1',
-				'upgrade-insecure-requests': '1',
-				// cookie: `SVRID=${loginCookie2SVRID}; AWSALB=${loginCookie2AWSALB}; AWSALBCORS=${loginCookie2AWSALBCORS}; ASP.NET_SessionId=${loginCookie2ASPNETSessionId}`,
 				cookie: loginCookie2,
 				Referer: 'https://www.benefit401k.com/customer/RkDCMember/Common/JP_D_BFKLogin.aspx',
 				'Referrer-Policy': 'strict-origin-when-cross-origin',
