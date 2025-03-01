@@ -163,6 +163,9 @@ export default async function getSbiIdeco(env, options = {}, retryCount = 0) {
 			})
 			.join('\n');
 
+		// ラベル追加
+		csv = '商品タイプ,運用商品名（略称）,資産残高,損益' + '\n' + csv;
+
 		// lastCookie を KV に保存
 		await env.KV_BINDING.put('idecoLoginCookieText', lastCookie);
 		return csv;
