@@ -9,10 +9,8 @@ export default {
 		const url = new URL(request.url);
 		const path = url.pathname;
 
-		// クエリからトークンを取得
+		// クエリからトークンを取得して検証、不正な場合は401を返す
 		const token = url.searchParams.get('token');
-
-		// トークンが正しいか確認
 		if (token !== env.API_TOKEN) {
 			return new Response('Unauthorized', { status: 401 });
 		}

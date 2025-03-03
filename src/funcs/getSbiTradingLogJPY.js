@@ -47,6 +47,11 @@ export default async function getSbiTradingLogJPY(env, retryCount = 0) {
 		const uint8Array = new Uint8Array(buffer);
 		const csv = new TextDecoder('shift-jis').decode(uint8Array);
 
+		// <script がないhtml でないか検証
+		if (csv.includes('<script')) {
+			throw new Error('HTML source contains <script>');
+		}
+
 		// 最初の 8 行を削除
 		const lines = csv.split('\n');
 		lines.splice(0, 8);
