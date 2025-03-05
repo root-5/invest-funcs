@@ -56,14 +56,16 @@ export default async function getSbiTradingLogJpy(env, retryCount = 0) {
 		const lines = csv.split('\n');
 		lines.splice(0, 8);
 
-		// 半角スペース、「"」をすべて削除
-		lines.forEach((line, i) => {
-			lines[i] = line.replace(/ /g, '');
-			lines[i] = line.replace(/"/g, '');
+		// 二次元配列に変換し、整形
+		const squareArray = [];
+		lines.forEach((line, _) => {
+			const processedLine = line.replace(/ /g, '').replace(/"/g, ''); // 半角スペース、「"」をすべて削除
+			const rowArray = processedLine.split(','); // カンマ区切りで分割
+			rowArray.splice(5, 3); // 6, 7, 8 列を削除
+			squareArray.push(rowArray); // 修正済み行を追加
 		});
 
-		// 二次元配列に変換して返却
-		return lines.map((line) => line.split(','));
+		return squareArray;
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_MAX) {
