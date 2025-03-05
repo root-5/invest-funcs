@@ -1,10 +1,10 @@
 import getSbiSession from './modules/getSbiSession';
 
 /**
- * SBI証券にログインし口座（円建）の情報を CSV 形式で返却する
+ * SBI証券にログインし口座（円建）の情報を取得、二次元配列で返却する
  * @param {object} env 環境変数
  * @param {number} retryCount リトライ回数のカウント
- * @returns {string} CSV形式の口座情報
+ * @returns {string[][]} 口座情報（円建）の二次元配列
  */
 export default async function getSbiAccountJpy(env, retryCount = 0) {
 	// ログイン情報を取得
@@ -69,40 +69,23 @@ export default async function getSbiAccountJpy(env, retryCount = 0) {
 			}
 		}
 
-		// オブジェクトに変換
-		const accountInfo = [];
+		// 二次元配列に変換
+		const squareArray = [];
 		for (let i = 0; i < stockCodes.length; i++) {
-			accountInfo.push({
-				margin: stockMarginTypes[i],
-				code: stockCodes[i],
-				name: stockNames[i],
-				share: stockShare[i],
-				buyingPrice: stockBuyingPrices[i],
-				nowPrice: stockNowPrices[i],
-			});
+			squareArray.push([stockMarginTypes[i], stockCodes[i], stockNames[i], stockShare[i], stockBuyingPrices[i], stockNowPrices[i]]);
 		}
 
-		// 買付余力を取得
+		// ラベルを追加
+		squareArray.unshift(['現/信', 'コード', '銘柄名', '株数', '買値', '現在値']);
+
+		// 買付余力を取得し、配列の初めに追加
 		const buyingPowerRegex = /<td width="150" class="mtext" align="right"><div class="margin">(.{1,10})&nbsp;/;
 		const buyingPowerMatch = portfolioHtml.match(buyingPowerRegex)[1];
 		const buyingPower = buyingPowerMatch.replace(/,/g, '');
-		accountInfo.unshift({
-			margin: '-',
-			code: '-',
-			name: '買付余力',
-			share: '-',
-			buyingPrice: '-',
-			nowPrice: buyingPower,
-		});
+		squareArray.unshift(['', '', '', '', '', '']);
+		squareArray.unshift(['買付余力', buyingPower, '', '', '', '']);
 
-		// csv 形式で返す
-		let csv = accountInfo
-			.map((info) => {
-				return `${info.margin},${info.code},${info.name},${info.share},${info.buyingPrice},${info.nowPrice}`;
-			})
-			.join('\n');
-		csv = `現/信,コード,銘柄名,株数,買値,現在値\n${csv}`;
-		return csv;
+		return squareArray;
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_MAX) {

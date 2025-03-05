@@ -1,10 +1,10 @@
 import getSbiSession from './modules/getSbiSession';
 
 /**
- * SBI証券にログインし取引履歴（円建）の情報を CSV 形式で返却する
+ * SBI証券にログインし取引履歴（円建）の情報を取得、二次元配列で返却する
  * @param {object} env 環境変数
  * @param {number} retryCount リトライ回数のカウント
- * @returns {string} CSV形式の口座情報
+ * @returns {string[][]} 取引履歴（円建）の二次元配列
  */
 export default async function getSbiTradingLogJpy(env, retryCount = 0) {
 	// 今日と1週間前の日付の文字列を生成（YYYYMMDD）
@@ -62,7 +62,8 @@ export default async function getSbiTradingLogJpy(env, retryCount = 0) {
 			lines[i] = line.replace(/"/g, '');
 		});
 
-		return lines.join('\n');
+		// 二次元配列に変換して返却
+		return lines.map((line) => line.split(','));
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_MAX) {

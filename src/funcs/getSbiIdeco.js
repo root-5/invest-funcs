@@ -1,3 +1,9 @@
+/**
+ * SBI ベネフィットシステムズにログインし iDeco の情報を取得、二次元配列で返却する
+ * @param {object} env 環境変数
+ * @param {number} retryCount リトライ回数のカウント
+ * @returns {string[][]} 取引履歴（円建）の二次元配列
+ */
 export default async function getSbiIdeco(env, options = {}, retryCount = 0) {
 	try {
 		let lastCookie;
@@ -128,47 +134,36 @@ export default async function getSbiIdeco(env, options = {}, retryCount = 0) {
 		const profitAndLossTable = profitAndLossEles.match(/<table[\s\S]*?<\/table>/)[0]; // 「<table」から「</table>」までの間を取得
 
 		// table要素の解析を正規表現で行う
-		let csv = '';
+		const squareArray = [];
 		const rows = profitAndLossTable.match(/<tr[^>]*>([\s\S]*?)<\/tr>/g) || []; // テーブル行を取得
-		for (const row of rows) {
-			const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || []; // 行からセルを取得
+		for (let i = 0; i < rows.length; i++) {
+			const cells = rows[i].match(/<td[^>]*>([\s\S]*?)<\/td>/g) || []; // 行からセルを取得
+			squareArray.push([]);
 			for (const cell of cells) {
 				const text = cell.replace(/<[^>]*>/g, '').trim(); // セルからテキストを抽出（HTMLタグを除去）
-				csv += text.replace(/\r\n|\t|&nbsp;|"|,/g, '') + ','; // 記号等を削除
+				squareArray[i].push(text.replace(/\r\n|\t|&nbsp;|"|,/g, '')); // 記号等を削除して配列に追加
 			}
-			csv += '\n';
 		}
 
-		csv = csv.replace(/,\n/g, '\n'); // CSV の各行で最後のカンマを削除
-		const maxCommaCount = Math.max(...csv.split('\n').map((line) => line.split(',').length)); // CSV の行で最大のカンマ数を取得
-
-		// CSV の各行でカンマ数が最大の行に揃える
-		csv = csv
-			.split('\n')
-			.map((line) => {
-				const commaCount = line.split(',').length;
-				if (commaCount < maxCommaCount) {
-					const addCommaCount = maxCommaCount - commaCount;
-					return line + ','.repeat(addCommaCount);
+		// 二次元配列の長さをそろえ、すべて '' の行を削除
+		const maxLength = Math.max(...squareArray.map((row) => row.length));
+		for (let i = 0; i < squareArray.length; i++) {
+			const rowLength = squareArray[i].length;
+			if (rowLength < maxLength) {
+				for (let j = 0; j < maxLength - rowLength; j++) {
+					squareArray[i].push('');
 				}
-				return line;
-			})
-			.join('\n');
+			}
+		}
+		const filteredArray = squareArray.filter((row) => row.some((cell) => cell !== ''));
 
-		// カンマ以外がない行を削除
-		csv = csv
-			.split('\n')
-			.filter((line) => {
-				return line.replace(/,/g, '').length > 0;
-			})
-			.join('\n');
-
-		// ラベル追加
-		csv = '商品タイプ,運用商品名（略称）,資産残高,損益' + '\n' + csv;
+		// ラベル追加し、最終行を削除
+		filteredArray.unshift(['商品タイプ', '運用商品名（略称）', '資産残高', '損益']);
+		filteredArray.pop();
 
 		// lastCookie を KV に保存
 		await env.KV_BINDING.put('idecoLoginCookieText', lastCookie);
-		return csv;
+		return filteredArray;
 
 		// ================================================================================
 	} catch (e) {

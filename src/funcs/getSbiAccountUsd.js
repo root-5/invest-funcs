@@ -1,10 +1,10 @@
 import getSbiSession from './modules/getSbiSession';
 
 /**
- * SBI証券にログインし口座（外貨建）の情報を CSV 形式で返却する
+ * SBI証券にログインし口座（外貨建）の情報を取得、二次元配列で返却する
  * @param {object} env 環境変数
  * @param {number} retryCount リトライ回数のカウント
- * @returns {string} CSV形式の口座情報
+ * @returns {string[][]} 口座情報（外貨建）の二次元配列
  */
 export default async function getSbiAccountUsd(env, retryCount = 0) {
 	// ログイン情報を取得
@@ -21,33 +21,28 @@ export default async function getSbiAccountUsd(env, retryCount = 0) {
 		});
 		const json = await res.json();
 
-		// 必要なパラメータだけのオブジェクトを作成
-		const accountInfo = [];
+		// 必要なパラメータだけの二次元配列を作成
+		const squareArray = [];
 		for (let i = 0; i < json.stockPortfolio.length; i++) {
 			for (let j = 0; j < json.stockPortfolio[i].details.length; j++) {
-				accountInfo.push({
-					margin: '現物',
-					code: json.stockPortfolio[i].details[j].securityCode,
-					name: json.stockPortfolio[i].details[j].securityName,
-					share: json.stockPortfolio[i].details[j].assetQty,
-					buyingPrice: json.stockPortfolio[i].details[j].acquisitionPrice,
-					nowPrice: json.stockPortfolio[i].details[j].currentPrice,
-					buyingPriceJpy:
-						(json.stockPortfolio[i].details[j].yenEvaluateAmount - json.stockPortfolio[i].details[j].yenEvaluateProfitLoss) /
+				squareArray.push([
+					'現物',
+					json.stockPortfolio[i].details[j].securityCode,
+					json.stockPortfolio[i].details[j].securityName,
+					json.stockPortfolio[i].details[j].assetQty,
+					json.stockPortfolio[i].details[j].acquisitionPrice,
+					json.stockPortfolio[i].details[j].currentPrice,
+					(json.stockPortfolio[i].details[j].yenEvaluateAmount - json.stockPortfolio[i].details[j].yenEvaluateProfitLoss) /
 						json.stockPortfolio[i].details[j].assetQty,
-					nowPriceJpy: json.stockPortfolio[i].details[j].yenEvaluateAmount / json.stockPortfolio[i].details[j].assetQty,
-				});
+					json.stockPortfolio[i].details[j].yenEvaluateAmount / json.stockPortfolio[i].details[j].assetQty,
+				]);
 			}
 		}
 
-		// csv 形式で返す
-		let csv = accountInfo
-			.map((info) => {
-				return `${info.margin},${info.code},${info.name},${info.share},${info.buyingPrice},${info.nowPrice},${info.buyingPriceJpy},${info.nowPriceJpy}`;
-			})
-			.join('\n');
-		csv = `現/信,コード,銘柄名,株数,買値,現在値,買値（円）,現在値（円）\n${csv}`;
-		return csv;
+		// ラベルを追加
+		squareArray.unshift(['現/信', 'コード', '銘柄名', '株数', '買値', '現在値', '買値（円）', '現在値（円）']);
+
+		return squareArray;
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_MAX) {
