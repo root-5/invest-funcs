@@ -6,7 +6,7 @@ import getSbiSession from './modules/getSbiSession';
  * @param {number} retryCount リトライ回数のカウント
  * @returns {string} CSV形式の口座情報
  */
-export default async function getSbiAccountJPY(env, retryCount = 0) {
+export default async function getSbiAccountJpy(env, retryCount = 0) {
 	// ログイン情報を取得
 	const { loginCookieText } = await getSbiSession(env);
 
@@ -108,7 +108,7 @@ export default async function getSbiAccountJPY(env, retryCount = 0) {
 		if (retryCount < env.RETRY_MAX) {
 			await new Promise((resolve) => setTimeout(resolve, env.RETRY_INTERVAL)); // 待機
 			await getSbiSession(env, { forceUpdate: true }); // ログイン情報を更新
-			return getSbiAccountJPY(env, retryCount + 1);
+			return getSbiAccountJpy(env, retryCount + 1);
 		}
 		console.log(e);
 		return 'error';

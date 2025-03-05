@@ -6,7 +6,7 @@ import getSbiSession from './modules/getSbiSession';
  * @param {number} retryCount リトライ回数のカウント
  * @returns {string} CSV形式の口座情報
  */
-export default async function getSbiAccountUSD(env, retryCount = 0) {
+export default async function getSbiAccountUsd(env, retryCount = 0) {
 	// ログイン情報を取得
 	const { ssoTokenText } = await getSbiSession(env);
 
@@ -32,10 +32,10 @@ export default async function getSbiAccountUSD(env, retryCount = 0) {
 					share: json.stockPortfolio[i].details[j].assetQty,
 					buyingPrice: json.stockPortfolio[i].details[j].acquisitionPrice,
 					nowPrice: json.stockPortfolio[i].details[j].currentPrice,
-					buyingPriceJPY:
+					buyingPriceJpy:
 						(json.stockPortfolio[i].details[j].yenEvaluateAmount - json.stockPortfolio[i].details[j].yenEvaluateProfitLoss) /
 						json.stockPortfolio[i].details[j].assetQty,
-					nowPriceJPY: json.stockPortfolio[i].details[j].yenEvaluateAmount / json.stockPortfolio[i].details[j].assetQty,
+					nowPriceJpy: json.stockPortfolio[i].details[j].yenEvaluateAmount / json.stockPortfolio[i].details[j].assetQty,
 				});
 			}
 		}
@@ -43,7 +43,7 @@ export default async function getSbiAccountUSD(env, retryCount = 0) {
 		// csv 形式で返す
 		let csv = accountInfo
 			.map((info) => {
-				return `${info.margin},${info.code},${info.name},${info.share},${info.buyingPrice},${info.nowPrice},${info.buyingPriceJPY},${info.nowPriceJPY}`;
+				return `${info.margin},${info.code},${info.name},${info.share},${info.buyingPrice},${info.nowPrice},${info.buyingPriceJpy},${info.nowPriceJpy}`;
 			})
 			.join('\n');
 		csv = `現/信,コード,銘柄名,株数,買値,現在値,買値（円）,現在値（円）\n${csv}`;
@@ -53,7 +53,7 @@ export default async function getSbiAccountUSD(env, retryCount = 0) {
 		if (retryCount < env.RETRY_MAX) {
 			await new Promise((resolve) => setTimeout(resolve, env.RETRY_INTERVAL)); // 待機
 			await getSbiSession(env, { forceUpdate: true }); // ログイン情報を更新
-			return getSbiAccountUSD(env, retryCount + 1);
+			return getSbiAccountUsd(env, retryCount + 1);
 		}
 		console.log(e);
 		return 'error';
