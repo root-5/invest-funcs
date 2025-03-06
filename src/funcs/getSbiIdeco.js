@@ -141,7 +141,7 @@ export default async function getSbiIdeco(env, options = {}, retryCount = 0) {
 			squareArray.push([]);
 			for (const cell of cells) {
 				const text = cell.replace(/<[^>]*>/g, '').trim(); // セルからテキストを抽出（HTMLタグを除去）
-				squareArray[i].push(text.replace(/\r\n|\t|&nbsp;|"|,/g, '')); // 記号等を削除して配列に追加
+				squareArray[i].push(text.replace(/\r\n|\t|&nbsp;|"|円|,/g, '')); // 記号等を削除して配列に追加
 			}
 		}
 
