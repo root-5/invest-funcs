@@ -72,18 +72,24 @@ export default async function getSbiAccountJpy(env, retryCount = 0) {
 		// 二次元配列に変換
 		const squareArray = [];
 		for (let i = 0; i < stockCodes.length; i++) {
-			squareArray.push([stockMarginTypes[i], stockCodes[i], stockNames[i], stockShare[i], stockBuyingPrices[i], stockNowPrices[i]]);
+			// '特定' は仮置き！
+			squareArray.push(['特定', stockMarginTypes[i], stockCodes[i], stockNames[i], stockShare[i], stockBuyingPrices[i], stockNowPrices[i]]);
 		}
 
 		// ラベルを追加
-		squareArray.unshift(['現/信', 'コード', '銘柄名', '株数', '買値', '現在値']);
+		squareArray.unshift(['預り', '現/信', 'コード', '銘柄名', '株数', '買値', '現在値']);
 
 		// 買付余力を取得し、配列の初めに追加
 		const buyingPowerRegex = /<td width="150" class="mtext" align="right"><div class="margin">(.{1,10})&nbsp;/;
 		const buyingPowerMatch = portfolioHtml.match(buyingPowerRegex)[1];
 		const buyingPower = buyingPowerMatch.replace(/,/g, '');
-		squareArray.unshift(['', '', '', '', '', '']);
-		squareArray.unshift(['買付余力', buyingPower, '', '', '', '']);
+		// squareArray[0].length を使って追加行の長さを合わせる
+		squareArray.unshift(['', '']);
+		squareArray.unshift(['買付余力', buyingPower]);
+		for (let i = 2; i < squareArray[0].length; i++) {
+			squareArray[0].push('');
+			squareArray[1].push('');
+		}
 
 		return squareArray;
 	} catch (e) {

@@ -24,8 +24,26 @@ export default async function getSbiAccountUsd(env, retryCount = 0) {
 		// 必要なパラメータだけの二次元配列を作成
 		const squareArray = [];
 		for (let i = 0; i < json.stockPortfolio.length; i++) {
+			// 口座種別を判定
+			let depositType = '';
+			switch (json.stockPortfolio[i].depositType) {
+				case 'GROWTH_INVESTMENT':
+					depositType = 'NISA';
+					break;
+				case 'SPECIFIC':
+					depositType = '特定';
+					break;
+				case 'GENERAL':
+					depositType = '一般';
+					break;
+				default:
+					depositType = '不明';
+					break;
+			}
+
 			for (let j = 0; j < json.stockPortfolio[i].details.length; j++) {
 				squareArray.push([
+					depositType,
 					'現物',
 					json.stockPortfolio[i].details[j].securityCode,
 					json.stockPortfolio[i].details[j].securityName,
@@ -40,7 +58,7 @@ export default async function getSbiAccountUsd(env, retryCount = 0) {
 		}
 
 		// ラベルを追加
-		squareArray.unshift(['現/信', 'コード', '銘柄名', '株数', '買値', '現在値', '買値（円）', '現在値（円）']);
+		squareArray.unshift(['預り','現/信', 'コード', '銘柄名', '株数', '買値', '現在値', '買値（円）', '現在値（円）']);
 
 		return squareArray;
 	} catch (e) {
