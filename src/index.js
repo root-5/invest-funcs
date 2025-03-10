@@ -36,20 +36,10 @@ export default {
 				return new Response(JSON.stringify(sbiIdeco), jsonOption);
 
 			case '/getSbiAllJpy':
-				// それぞれの配列を取得・結合し、各行の配列の長さをそろえる
 				const _sbiAccountJpy = await getSbiAccountJpy(env);
 				const _sbiTradingLogJpy = await getSbiTradingLogJpy(env);
-				const maxLength = Math.max(_sbiAccountJpy[0].length, _sbiTradingLogJpy[0].length);
-				const sbiAllJpyArray = _sbiAccountJpy.concat([[]]).concat(_sbiTradingLogJpy);
-				for (let i = 0; i < sbiAllJpyArray.length; i++) {
-					const rowLength = sbiAllJpyArray[i].length;
-					if (rowLength < maxLength) {
-						for (let j = 0; j < maxLength - rowLength; j++) {
-							sbiAllJpyArray[i].push('');
-						}
-					}
-				}
-				return new Response(JSON.stringify(sbiAllJpyArray), jsonOption);
+				const sbiAllJpy = Object.assign({}, _sbiAccountJpy, _sbiTradingLogJpy);
+				return new Response(JSON.stringify(sbiAllJpy), jsonOption);
 
 			case '/getSbiAllUsd':
 				// それぞれの配列を取得・結合し、各行の配列の長さをそろえる

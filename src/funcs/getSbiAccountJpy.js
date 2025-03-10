@@ -1,10 +1,10 @@
 import getSbiSession from './modules/getSbiSession';
 
 /**
- * SBI証券にログインし口座（円建）の情報を取得、二次元配列で返却する
+ * SBI証券にログインし口座（円建）の情報を取得、返却する
  * @param {object} env 環境変数
  * @param {number} retryCount リトライ回数のカウント
- * @returns {string[][]} 口座情報（円建）の二次元配列
+ * @returns {object} 口座情報（円建）のオブジェクト
  */
 export default async function getSbiAccountJpy(env, retryCount = 0) {
 	// ログイン情報を取得
@@ -37,12 +37,12 @@ export default async function getSbiAccountJpy(env, retryCount = 0) {
 		let stockMarginTypes = [];
 		let stockCodes = [];
 		let stockNames = [];
-		let stockShare = [];
+		let stockQuantity = [];
 		let stockBuyingPrices = [];
 		let stockNowPrices = [];
 		const stockCodesRegex = /i_stock_sec=(.{1,6})\+&amp;/g;
 		const stockNamesRegex = /PER=1">(.{1,20})<\/a>/g;
-		const stockShareandPricesRegex = /<td class="mtext">(.{1,10})<\/td>/g;
+		const stockQuantityandPricesRegex = /<td class="mtext">(.{1,10})<\/td>/g;
 		for (let i = 0; i < stockTableElem.length; i++) {
 			const marginType = i === 0 ? '現物' : '信用';
 			while ((match = stockCodesRegex.exec(stockTableElem[i])) !== null) {
@@ -53,10 +53,10 @@ export default async function getSbiAccountJpy(env, retryCount = 0) {
 				stockNames.push(match[1]);
 			}
 			let count = 0;
-			while ((match = stockShareandPricesRegex.exec(stockTableElem[i])) !== null) {
+			while ((match = stockQuantityandPricesRegex.exec(stockTableElem[i])) !== null) {
 				switch (count % 3) {
 					case 0:
-						stockShare.push(Number(match[1].replace(/,/g, '')));
+						stockQuantity.push(Number(match[1].replace(/,/g, '')));
 						break;
 					case 1:
 						stockBuyingPrices.push(Number(match[1].replace(/,/g, '')));
@@ -69,29 +69,32 @@ export default async function getSbiAccountJpy(env, retryCount = 0) {
 			}
 		}
 
-		// 二次元配列に変換
-		const squareArray = [];
-		for (let i = 0; i < stockCodes.length; i++) {
-			// '特定' は仮置き！
-			squareArray.push(['特定', stockMarginTypes[i], stockCodes[i], stockNames[i], stockShare[i], stockBuyingPrices[i], stockNowPrices[i]]);
-		}
-
-		// ラベルを追加
-		squareArray.unshift(['預り', '現/信', 'コード', '銘柄名', '株数', '買値', '現在値']);
-
-		// 買付余力を取得し、配列の初めに追加
+		// 買付余力を取得
 		const buyingPowerRegex = /<td width="150" class="mtext" align="right"><div class="margin">(.{1,10})&nbsp;/;
 		const buyingPowerMatch = portfolioHtml.match(buyingPowerRegex)[1];
-		const buyingPower = buyingPowerMatch.replace(/,/g, '');
-		// squareArray[0].length を使って追加行の長さを合わせる
-		squareArray.unshift(['', '']);
-		squareArray.unshift(['買付余力', buyingPower]);
-		for (let i = 2; i < squareArray[0].length; i++) {
-			squareArray[0].push('');
-			squareArray[1].push('');
+		const buyingPower = Number(buyingPowerMatch.replace(/,/g, ''));
+
+		// 株式情報をオブジェクトに格納
+		const stocks = [];
+		for (let i = 0; i < stockCodes.length; i++) {
+			stocks.push({
+				currencyType: '円建',
+				depositType: '特定', // '特定' は仮置き
+				marginType: stockMarginTypes[i],
+				code: stockCodes[i],
+				name: stockNames[i],
+				quantity: stockQuantity[i],
+				buyPrice: stockBuyingPrices[i],
+				currentPrice: stockNowPrices[i],
+				profitAndLoss: (stockNowPrices[i] - stockBuyingPrices[i]) * stockQuantity[i],
+				marketCap: stockNowPrices[i] * stockQuantity[i],
+			});
 		}
 
-		return squareArray;
+		return {
+			buyingPower: buyingPower,
+			stocks: stocks,
+		};
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_MAX) {
@@ -100,6 +103,6 @@ export default async function getSbiAccountJpy(env, retryCount = 0) {
 			return getSbiAccountJpy(env, retryCount + 1);
 		}
 		console.log(e);
-		return 'error';
+		return { error: e.message };
 	}
 }
