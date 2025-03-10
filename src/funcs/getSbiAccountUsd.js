@@ -1,10 +1,10 @@
 import getSbiSession from './modules/getSbiSession';
 
 /**
- * SBI証券にログインし口座（外貨建）の情報を取得、二次元配列で返却する
+ * SBI証券にログインし口座（外貨建）の情報を取得、オブジェクトで返却する
  * @param {object} env 環境変数
  * @param {number} retryCount リトライ回数のカウント
- * @returns {string[][]} 口座情報（外貨建）の二次元配列
+ * @returns {object} 口座情報（外貨建）のオブジェクト
  */
 export default async function getSbiAccountUsd(env, retryCount = 0) {
 	// ログイン情報を取得
@@ -21,8 +21,8 @@ export default async function getSbiAccountUsd(env, retryCount = 0) {
 		});
 		const json = await res.json();
 
-		// 必要なパラメータだけの二次元配列を作成
-		const squareArray = [];
+		// 株式情報をオブジェクトの配列に変換
+		const stocks = [];
 		for (let i = 0; i < json.stockPortfolio.length; i++) {
 			// 口座種別を判定
 			let depositType = '';
@@ -42,25 +42,30 @@ export default async function getSbiAccountUsd(env, retryCount = 0) {
 			}
 
 			for (let j = 0; j < json.stockPortfolio[i].details.length; j++) {
-				squareArray.push([
-					depositType,
-					'現物',
-					json.stockPortfolio[i].details[j].securityCode,
-					json.stockPortfolio[i].details[j].securityName,
-					json.stockPortfolio[i].details[j].assetQty,
-					json.stockPortfolio[i].details[j].acquisitionPrice,
-					json.stockPortfolio[i].details[j].currentPrice,
-					(json.stockPortfolio[i].details[j].yenEvaluateAmount - json.stockPortfolio[i].details[j].yenEvaluateProfitLoss) /
-						json.stockPortfolio[i].details[j].assetQty,
-					json.stockPortfolio[i].details[j].yenEvaluateAmount / json.stockPortfolio[i].details[j].assetQty,
-				]);
+				const detail = json.stockPortfolio[i].details[j];
+				const yenAcquisitionPrice = (detail.yenEvaluateAmount - detail.yenEvaluateProfitLoss) / detail.assetQty;
+				const yenCurrentPrice = detail.yenEvaluateAmount / detail.assetQty;
+
+				stocks.push({
+					currencyType: '外貨建',
+					depositType: depositType,
+					marginType: '現物',
+					code: detail.securityCode,
+					name: detail.securityName,
+					quantity: detail.assetQty,
+					buyPrice: detail.acquisitionPrice,
+					currentPrice: detail.currentPrice,
+					profitAndLoss: detail.foreignEvaluateProfitLoss,
+					marketCap: detail.foreignEvaluateAmount,
+					yenBuyPrice: yenAcquisitionPrice,
+					yenCurrentPrice: yenCurrentPrice,
+					yenProfitAndLoss: detail.yenEvaluateProfitLoss,
+					yenMarketCap: detail.yenEvaluateAmount,
+				});
 			}
 		}
 
-		// ラベルを追加
-		squareArray.unshift(['預り','現/信', 'コード', '銘柄名', '株数', '買値', '現在値', '買値（円）', '現在値（円）']);
-
-		return squareArray;
+		return { stocks: stocks };
 	} catch (e) {
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_MAX) {
@@ -69,6 +74,6 @@ export default async function getSbiAccountUsd(env, retryCount = 0) {
 			return getSbiAccountUsd(env, retryCount + 1);
 		}
 		console.log(e);
-		return 'error';
+		return { error: e.message };
 	}
 }

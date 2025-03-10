@@ -45,17 +45,8 @@ export default {
 				// それぞれの配列を取得・結合し、各行の配列の長さをそろえる
 				const _sbiAccountUsd = await getSbiAccountUsd(env);
 				const _sbiIdeco = await getSbiIdeco(env);
-				const maxLengthDash = Math.max(_sbiAccountUsd[0].length, _sbiIdeco[0].length);
-				const sbiAllUsdArray = _sbiAccountUsd.concat([[]]).concat(_sbiIdeco);
-				for (let i = 0; i < sbiAllUsdArray.length; i++) {
-					const rowLength = sbiAllUsdArray[i].length;
-					if (rowLength < maxLengthDash) {
-						for (let j = 0; j < maxLengthDash - rowLength; j++) {
-							sbiAllUsdArray[i].push('');
-						}
-					}
-				}
-				return new Response(JSON.stringify(sbiAllUsdArray), jsonOption);
+				const sbiAllUsd = Object.assign({}, _sbiAccountUsd, _sbiIdeco);
+				return new Response(JSON.stringify(sbiAllUsd), jsonOption);
 
 			default:
 				return new Response(

@@ -1,8 +1,9 @@
 /**
- * SBI ベネフィットシステムズにログインし iDeco の情報を取得、二次元配列で返却する
+ * SBI ベネフィットシステムズにログインし iDeco の情報を取得、オブジェクトで返却する
  * @param {object} env 環境変数
+ * @param {object} options オプション
  * @param {number} retryCount リトライ回数のカウント
- * @returns {string[][]} 取引履歴（円建）の二次元配列
+ * @returns {object} iDeco のオブジェクト
  */
 export default async function getSbiIdeco(env, options = {}, retryCount = 0) {
 	try {
@@ -155,25 +156,38 @@ export default async function getSbiIdeco(env, options = {}, retryCount = 0) {
 				}
 			}
 		}
-		const filteredArray = squareArray.filter((row) => row.some((cell) => cell !== ''));
+		const filteredSquareArray = squareArray.filter((row) => row.some((cell) => cell !== ''));
 
-		// ラベル追加し、最終行を削除
-		filteredArray.unshift(['商品タイプ', '運用商品名（略称）', '資産残高', '損益']);
-		filteredArray.pop();
+		// 最終行を削除
+		filteredSquareArray.pop();
+
+		// 二次元配列からオブジェクトの配列に変換
+		const idecoArray = [];
+		for (let i = 0; i < filteredSquareArray.length; i++) {
+			const row = filteredSquareArray[i];
+			idecoArray.push({
+				currencyType: '円建',
+				depositType: 'iDeco',
+				marginType: '現物',
+				productType: row[0],
+				productName: row[1],
+				buyPrice: row[2] - row[3],
+				marketCap: row[2],
+				profitAndLoss: row[3],
+			});
+		}
 
 		// lastCookie を KV に保存
 		await env.KV_BINDING.put('idecoLoginCookieText', lastCookie);
-		return filteredArray;
-
-		// ================================================================================
+		return { idecoProducts: idecoArray };
 	} catch (e) {
+		// ================================================================================
 		// 取得失敗時は指定回数までリトライ
 		if (retryCount < env.RETRY_MAX) {
 			await new Promise((resolve) => setTimeout(resolve, env.RETRY_INTERVAL)); // 待機
-			const csv = await getSbiIdeco(env, { forceUpdate: true }, retryCount + 1); // ログイン情報を更新
-			return csv;
+			return await getSbiIdeco(env, { forceUpdate: true }, retryCount + 1); // ログイン情報を更新
 		}
 		console.log(e);
-		return 'error';
+		return { error: e.message };
 	}
 }
