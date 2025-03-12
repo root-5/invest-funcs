@@ -109,7 +109,8 @@ export default async function getSbiExecutionJpy(env, retryCount = 0) {
 		// 注文履歴をオブジェクトに格納
 		const stockExecutions = arr.map((v) => {
 			return {
-				date: v[1].split('\n')[0],
+				currencyType: '円建',
+				date: '20' + v[1].split('\n')[0],
 				code: v[5].split('\n')[1].trim(),
 				name: v[5].split('\n')[0],
 				operation: v[4].split('\n')[0],
