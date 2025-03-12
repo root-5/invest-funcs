@@ -1,5 +1,6 @@
 import getSbiAccountJpy from './funcs/getSbiAccountJpy';
 import getSbiAccountUsd from './funcs/getSbiAccountUsd';
+import getSbiExecutionJpy from './funcs/getSbiExecutionJpy';
 import getSbiTradingLogJpy from './funcs/getSbiTradingLogJpy';
 import getSbiIdeco from './funcs/getSbiIdeco';
 
@@ -19,30 +20,42 @@ export default {
 		const jsonOption = { headers: { 'Content-Type': 'application/json' } };
 
 		switch (path) {
+			// 口座（円建）
 			case '/sbiAccountJpy':
 				const sbiAccountJpy = await getSbiAccountJpy(env);
 				return new Response(JSON.stringify(sbiAccountJpy), jsonOption);
 
+			// 注文履歴
+			case '/getSbiExecutionJpy':
+				const sbiExecutionJpy = await getSbiExecutionJpy(env);
+				// return new Response(sbiExecutionJpy);
+				return new Response(JSON.stringify(sbiExecutionJpy), jsonOption);
+
+			// 取引履歴（円建）
 			case '/getSbiTradingLogJpy':
 				const sbiTradingLogJpy = await getSbiTradingLogJpy(env);
 				return new Response(JSON.stringify(sbiTradingLogJpy), jsonOption);
 
+			// 口座（外貨建）
 			case '/sbiAccountUsd':
 				const sbiAccountUsd = await getSbiAccountUsd(env);
 				return new Response(JSON.stringify(sbiAccountUsd), jsonOption);
 
+			// iDeCo
 			case '/getSbiIdeco':
 				const sbiIdeco = await getSbiIdeco(env);
 				return new Response(JSON.stringify(sbiIdeco), jsonOption);
 
+			// すべての情報（円建）
 			case '/getSbiAllJpy':
 				const _sbiAccountJpy = await getSbiAccountJpy(env);
 				const _sbiTradingLogJpy = await getSbiTradingLogJpy(env);
-				const sbiAllJpy = Object.assign({}, _sbiAccountJpy, _sbiTradingLogJpy);
+				const _sbiExecutionJpy = await getSbiExecutionJpy(env);
+				const sbiAllJpy = Object.assign({}, _sbiAccountJpy, _sbiTradingLogJpy, _sbiExecutionJpy);
 				return new Response(JSON.stringify(sbiAllJpy), jsonOption);
 
+			// すべての情報（外貨建）
 			case '/getSbiAllUsd':
-				// それぞれの配列を取得・結合し、各行の配列の長さをそろえる
 				const _sbiAccountUsd = await getSbiAccountUsd(env);
 				const _sbiIdeco = await getSbiIdeco(env);
 				const sbiAllUsd = Object.assign({}, _sbiAccountUsd, _sbiIdeco);
@@ -60,12 +73,14 @@ export default {
 					<body>
 						<h1>仕様メモ</h1>
 						<ul>
-							<li><a href="/getSbiAllJpy?token=${env.API_TOKEN}">/getSbiAllJpy</a>: SBI証券の円建口座、外貨建口座、取引履歴を取得</li>
-							<li><a href="/getSbiAllUsd?token=${env.API_TOKEN}">/getSbiAllUsd</a>: SBI証券の外貨建口座、iDeCo情報を取得</li>
 							<li><a href="/sbiAccountJpy?token=${env.API_TOKEN}">/sbiAccountJpy</a>: SBI証券の円建口座情報を取得</li>
+							<li><a href="/getSbiExecutionJpy?token=${env.API_TOKEN}">/getSbiExecutionJpy</a>: SBI証券の円建注文履歴から約定情報を取得</li>
 							<li><a href="/getSbiTradingLogJpy?token=${env.API_TOKEN}">/getSbiTradingLogJpy</a>: SBI証券の円建取引履歴を取得</li>
 							<li><a href="/sbiAccountUsd?token=${env.API_TOKEN}">/sbiAccountUsd</a>: SBI証券の外貨建口座情報を取得</li>
 							<li><a href="/getSbiIdeco?token=${env.API_TOKEN}">/getSbiIdeco</a>: SBI証券のiDeCo情報を取得</li>
+							<li>----</li>
+							<li><a href="/getSbiAllJpy?token=${env.API_TOKEN}">/getSbiAllJpy</a>: SBI証券の円建口座、外貨建口座、取引履歴を取得</li>
+							<li><a href="/getSbiAllUsd?token=${env.API_TOKEN}">/getSbiAllUsd</a>: SBI証券の外貨建口座、iDeCo情報を取得</li>
 						</ul>
 					</body>
 					</html>
