@@ -1,6 +1,7 @@
 import getSbiAccountJpy from './funcs/getSbiAccountJpy';
 import getSbiAccountUsd from './funcs/getSbiAccountUsd';
-import getSbiExecutionJpy from './funcs/getSbiExecutionJpy';
+import getSbiTodayExecutionJpy from './funcs/getSbiTodayExecutionJpy';
+import getSbiOrdersJpy from './funcs/getSbiOrdersJpy';
 import getSbiTradingLogJpy from './funcs/getSbiTradingLogJpy';
 import getSbiIdeco from './funcs/getSbiIdeco';
 
@@ -25,10 +26,14 @@ export default {
 				const sbiAccountJpy = await getSbiAccountJpy(env);
 				return new Response(JSON.stringify(sbiAccountJpy), jsonOption);
 
+			// 当日約定履歴
+			case '/getSbiTodayExecutionJpy':
+				const sbiTodayExecutionJpy = await getSbiTodayExecutionJpy(env);
+				return new Response(JSON.stringify(sbiTodayExecutionJpy), jsonOption);
+
 			// 注文履歴
-			case '/getSbiExecutionJpy':
-				const sbiExecutionJpy = await getSbiExecutionJpy(env);
-				// return new Response(sbiExecutionJpy);
+			case '/getSbiOrdersJpy':
+				const sbiExecutionJpy = await getSbiOrdersJpy(env);
 				return new Response(JSON.stringify(sbiExecutionJpy), jsonOption);
 
 			// 取引履歴（円建）
@@ -50,8 +55,9 @@ export default {
 			case '/getSbiAllJpy':
 				const _sbiAccountJpy = await getSbiAccountJpy(env);
 				const _sbiTradingLogJpy = await getSbiTradingLogJpy(env);
-				const _sbiExecutionJpy = await getSbiExecutionJpy(env);
-				const sbiAllJpy = Object.assign({}, _sbiAccountJpy, _sbiTradingLogJpy, _sbiExecutionJpy);
+				// const _sbiExecutionJpy = await getSbiOrdersJpy(env);
+				const _sbiTodayExecutionJpy = await getSbiTodayExecutionJpy(env);
+				const sbiAllJpy = Object.assign({}, _sbiAccountJpy, _sbiTradingLogJpy, _sbiTodayExecutionJpy);
 				return new Response(JSON.stringify(sbiAllJpy), jsonOption);
 
 			// すべての情報（外貨建）
@@ -74,7 +80,8 @@ export default {
 						<h1>仕様メモ</h1>
 						<ul>
 							<li><a href="/sbiAccountJpy?token=${env.API_TOKEN}">/sbiAccountJpy</a>: SBI証券の円建口座情報を取得</li>
-							<li><a href="/getSbiExecutionJpy?token=${env.API_TOKEN}">/getSbiExecutionJpy</a>: SBI証券の円建注文履歴から約定情報を取得</li>
+							<li><a href="/getSbiTodayExecutionJpy?token=${env.API_TOKEN}">/getSbiTodayExecutionJpy</a>: SBI証券の円建当日約定情報を取得</li>
+							<li><a href="/getSbiOrdersJpy?token=${env.API_TOKEN}">/getSbiOrdersJpy</a>: SBI証券の円建注文履歴を取得</li>
 							<li><a href="/getSbiTradingLogJpy?token=${env.API_TOKEN}">/getSbiTradingLogJpy</a>: SBI証券の円建取引履歴を取得</li>
 							<li><a href="/sbiAccountUsd?token=${env.API_TOKEN}">/sbiAccountUsd</a>: SBI証券の外貨建口座情報を取得</li>
 							<li><a href="/getSbiIdeco?token=${env.API_TOKEN}">/getSbiIdeco</a>: SBI証券のiDeCo情報を取得</li>

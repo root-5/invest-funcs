@@ -1,12 +1,12 @@
 import getSbiSession from './modules/getSbiSession';
 
 /**
- * SBI証券にログインし注文履歴から約定した注文情報を取得、返却する
+ * SBI証券にログインし注文履歴を取得、返却する
  * @param {object} env 環境変数
  * @param {number} retryCount リトライ回数のカウント
- * @returns {object} 注文履歴から約定した注文情報のオブジェクト
+ * @returns {object} 注文履歴のオブジェクト
  */
-export default async function getSbiExecutionJpy(env, retryCount = 0) {
+export default async function getSbiOrdersJpy(env, retryCount = 0) {
 	// ログイン情報を取得
 	const { loginCookieText } = await getSbiSession(env);
 
@@ -127,7 +127,7 @@ export default async function getSbiExecutionJpy(env, retryCount = 0) {
 		if (retryCount < env.RETRY_MAX) {
 			await new Promise((resolve) => setTimeout(resolve, env.RETRY_INTERVAL)); // 待機
 			await getSbiSession(env, { forceUpdate: true }); // ログイン情報を更新
-			return getSbiExecutionJpy(env, retryCount + 1);
+			return getSbiOrdersJpy(env, retryCount + 1);
 		}
 		console.log(e);
 		return { error: e.message };
